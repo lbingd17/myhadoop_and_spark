@@ -1,8 +1,33 @@
 /***
  * 包括基本的log预处理以及生成dataframe的过程
+ * //Part1. 读取parquet格式文件
+ * //Part2. 读取txt文件，并利用由StructField数组构造的StructType来添加schema信息
+ * //Part3. case class隐式推断数据类型
+ * //Part4. 保存结果rdd，分别按照parquet格式和txt格式
  * */
     import org.apache.spark.sql.Row
     import org.apache.spark.sql.types.{LongType, StringType, StructField, StructType}
+    
+/////////////////////////////////////////////////////////////////////////    
+//Part1. 读取parquet格式文件
+/////////////////////////////////////////////////////////////////////////
+
+    val myparquet_path = "./parquet/part-r-00000-2bc12e2b-e375-492d-88cf-df810b43969d.gz.parquet"
+    val df_tmp_parquet = sqlContext.read.parquet(myparquet_path)
+/**
+ scala> df_tmp_parquet.show
++------+---------------+-----+-----+--------+
+|userid|userid_line_cnt|maxts|mints|duration|
++------+---------------+-----+-----+--------+
+|    q1|              2|    2|    1|       1|
+|    q2|              3|    2|    1|       1|
+|    q3|              1|   12|   12|       0|
++------+---------------+-----+-----+--------+
+**/ 
+
+/////////////////////////////////////////////////////////////////////////
+//Part2. 读取txt文件，并利用由StructField数组构造的StructType来添加schema信息
+/////////////////////////////////////////////////////////////////////////
 
     var StructFieldArr = new Array[StructField](4)
     StructFieldArr(0) = new StructField("Id", StringType, true)
@@ -31,9 +56,9 @@ scala> log_df.show
 +---+---------+--------+---+
 */
 
-/***
- * case class隐式推断数据类型
-***/
+/////////////////////////////////////////////////////////////////////////
+//Part3. case class隐式推断数据类型
+//////////////////////////////////////////////////////////////////////////
     case class myTupleLogSchema(
                                userid : String,
                                timestamp : Long,
@@ -93,6 +118,9 @@ scala> df_computed.show
 +------+---------------+-----+-----+--------+
 **/
 
+/////////////////////////////////////////////////////////////////////////
+//Part4. 保存结果rdd，分别按照parquet格式和txt格式
+/////////////////////////////////////////////////////////////////////////
     val parts = 1
     val output_path = "."
     df_computed_with_duration.repartition(parts).write.parquet(output_path + "/parquet")
