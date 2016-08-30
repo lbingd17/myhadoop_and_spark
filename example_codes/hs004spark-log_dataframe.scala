@@ -1,3 +1,6 @@
+/***
+ * 包括基本的log预处理以及生成dataframe的过程
+ * */
     import org.apache.spark.sql.Row
     import org.apache.spark.sql.types.{LongType, StringType, StructField, StructType}
 
@@ -6,7 +9,7 @@
     StructFieldArr(1) = new StructField("Timestamp", StringType, true)
     StructFieldArr(2) = new StructField("name", StringType, true)
     StructFieldArr(3) = new StructField("age", LongType, true)
-  val log_schema = StructType(StructFieldArr)
+    val log_schema = StructType(StructFieldArr)
 
     val inputFilePath = "myTestInput"
     val log_arraystring_rdd =  sc.textFile(inputFilePath).map(_.split("\t"))
@@ -28,20 +31,21 @@ scala> log_df.show
 +---+---------+--------+---+
 */
 
-//case class
-
- case class myTupleLogSchema(
+/***
+ * case class隐式推断数据类型
+***/
+    case class myTupleLogSchema(
                                userid : String,
                                timestamp : Long,
                                line_flag : Int
                              )
 
-  val myTupleLog = sc.parallelize( List(("q1", 1,1 ), ("q1", 2,1)
+    val myTupleLog = sc.parallelize( List(("q1", 1,1 ), ("q1", 2,1)
           ,("q2",  1,1), ("q2",2,1)
           ,  ("q2", 1,1), ("q3",12,1) ), 1).
         map(line => {myTupleLogSchema(line._1, line._2, line._3) }).toDF()
 
-  myTupleLog.show
+    myTupleLog.show
  /**
  scala> myTupleLog.show
 +------+---------+---------+
@@ -55,12 +59,12 @@ scala> log_df.show
 |    q3|       12|        1|
 +------+---------+---------+
  **/
-         import org.apache.spark.{SparkConf, SparkContext}
-      import org.apache.spark.sql.DataFrame
-      import org.apache.spark.sql.functions._
-      val df_wholelog3 = myTupleLog
-      val df_computed = df_wholelog3.groupBy("userid").
-          agg(sum("line_flag") as "userid_line_cnt", max("timestamp") as  "maxts", min("timestamp") as "mints")
+    import org.apache.spark.{SparkConf, SparkContext}
+    import org.apache.spark.sql.DataFrame
+    import org.apache.spark.sql.functions._
+    val df_wholelog3 = myTupleLog
+    val df_computed = df_wholelog3.groupBy("userid").
+        agg(sum("line_flag") as "userid_line_cnt", max("timestamp") as  "maxts", min("timestamp") as "mints")
 /**
 scala> df_computed.show
 +------+---------------+-----+-----+                                            
@@ -72,11 +76,11 @@ scala> df_computed.show
 +------+---------------+-----+-----+
 **/
 
-      val compute_time_duration = udf[Long, Long, Long]((maxts, mints) => {
-          (maxts - mints)
-      })
-      val df_computed_with_duration = df_computed.withColumn("duration",compute_time_duration(col("maxts"), col("mints") ))
-      df_computed_with_duration.show
+    val compute_time_duration = udf[Long, Long, Long]((maxts, mints) => {
+        (maxts - mints)
+    })
+    val df_computed_with_duration = df_computed.withColumn("duration",compute_time_duration(col("maxts"), col("mints") ))
+    df_computed_with_duration.show
       
 /**
  * df_computed_with_duration.show
@@ -88,10 +92,11 @@ scala> df_computed.show
 |    q3|              1|   12|   12|       0|
 +------+---------------+-----+-----+--------+
 **/
-   val parts = 1
-   val output_path = "."
-   df_computed_with_duration.repartition(parts).write.parquet(output_path + "/parquet")
-   df_computed_with_duration.repartition(parts).rdd.saveAsTextFile(output_path + "/text")
+
+    val parts = 1
+    val output_path = "."
+    df_computed_with_duration.repartition(parts).write.parquet(output_path + "/parquet")
+    df_computed_with_duration.repartition(parts).rdd.saveAsTextFile(output_path + "/text")
           
 
   
