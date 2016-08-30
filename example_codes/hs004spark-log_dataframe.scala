@@ -30,7 +30,7 @@ scala> log_df.show
 
 //case class
 
- case class myTupleLogSample(
+ case class myTupleLogSchema(
                                userid : String,
                                timestamp : Long,
                                line_flag : Int
@@ -39,7 +39,7 @@ scala> log_df.show
   val myTupleLog = sc.parallelize( List(("q1", 1,1 ), ("q1", 2,1)
           ,("q2",  1,1), ("q2",2,1)
           ,  ("q2", 1,1), ("q3",12,1) ), 1).
-        map(line => {myTupleLogSample(line._1, line._2, line._3) }).toDF()
+        map(line => {myTupleLogSchema(line._1, line._2, line._3) }).toDF()
 
   myTupleLog.show
  /**
@@ -55,7 +55,44 @@ scala> log_df.show
 |    q3|       12|        1|
 +------+---------+---------+
  **/
-                             
+         import org.apache.spark.{SparkConf, SparkContext}
+      import org.apache.spark.sql.DataFrame
+      import org.apache.spark.sql.functions._
+      val df_wholelog3 = myTupleLog
+      val df_computed = df_wholelog3.groupBy("userid").
+          agg(sum("line_flag") as "userid_line_cnt", max("timestamp") as  "maxts", min("timestamp") as "mints")
+/**
+scala> df_computed.show
++------+---------------+-----+-----+                                            
+|userid|userid_line_cnt|maxts|mints|
++------+---------------+-----+-----+
+|    q1|              2|    2|    1|
+|    q2|              3|    2|    1|
+|    q3|              1|   12|   12|
++------+---------------+-----+-----+
+**/
+
+      val compute_time_duration = udf[Long, Long, Long]((maxts, mints) => {
+          (maxts - mints)
+      })
+      val df_computed_with_duration = df_computed.withColumn("duration",compute_time_duration(col("maxts"), col("mints") ))
+      df_computed_with_duration.show
+      
+/**
+ * df_computed_with_duration.show
++------+---------------+-----+-----+--------+                                   
+|userid|userid_line_cnt|maxts|mints|duration|
++------+---------------+-----+-----+--------+
+|    q1|              2|    2|    1|       1|
+|    q2|              3|    2|    1|       1|
+|    q3|              1|   12|   12|       0|
++------+---------------+-----+-----+--------+
+**/
+   val parts = 1
+   val output_path = "."
+   df_computed_with_duration.repartition(parts).write.parquet(output_path + "/parquet")
+   df_computed_with_duration.repartition(parts).rdd.saveAsTextFile(output_path + "/text")
+          
 
   
   
