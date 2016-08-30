@@ -126,7 +126,30 @@ scala> df_computed.show
     df_computed_with_duration.repartition(parts).write.parquet(output_path + "/parquet")
     df_computed_with_duration.repartition(parts).rdd.saveAsTextFile(output_path + "/text")
           
+/////////////////////////////////////////////////////////////////////////
+//Part5. dataframe join操作
+/////////////////////////////////////////////////////////////////////////
+    val df_tmp1 = df_computed_with_duration
+    val df_tmp2 = df_computed_with_duration
+    val df_join = df_tmp1.join(df_tmp2, df_tmp1("userid") === df_tmp2("userid"))
+    df_join.show
+     
+/**
+scala>     val df_tmp1 = df_computed_with_duration
+    val df_tmp2 = df_computed_with_duration
+    val df_join = df_tmp1.join(df_tmp2, df_tmp1("userid") === df_tmp2("userid"))
+    df_join.show
+16/08/30 17:31:11 WARN Column: Constructing trivially true equals predicate, 'userid#0 = userid#0'. Perhaps you need to use aliases.
++------+---------------+-----+-----+--------+------+---------------+-----+-----+--------+
+|userid|userid_line_cnt|maxts|mints|duration|userid|userid_line_cnt|maxts|mints|duration|
++------+---------------+-----+-----+--------+------+---------------+-----+-----+--------+
+|    q1|              2|    2|    1|       1|    q1|              2|    2|    1|       1|
+|    q2|              3|    2|    1|       1|    q2|              3|    2|    1|       1|
+|    q3|              1|   12|   12|       0|    q3|              1|   12|   12|       0|
++------+---------------+-----+-----+--------+------+---------------+-----+-----+--------+
 
+
+**/
   
   
   
