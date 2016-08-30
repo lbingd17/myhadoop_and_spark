@@ -130,24 +130,26 @@ scala> df_computed.show
 //Part5. dataframe join操作
 /////////////////////////////////////////////////////////////////////////
     val df_tmp1 = df_computed_with_duration
-    val df_tmp2 = df_computed_with_duration
-    val df_join = df_tmp1.join(df_tmp2, df_tmp1("userid") === df_tmp2("userid"))
+    val df_tmp2 = df_computed_with_duration.
+    withColumnRenamed("userid", "userid2").
+    withColumnRenamed("userid_line_cnt", "userid_line_cnt2").
+    withColumnRenamed("maxts", "maxts2").
+    withColumnRenamed("mints", "mints2").
+    withColumnRenamed("duration", "duration2")
+    
+    
+    val df_join = df_tmp1.join(df_tmp2, df_tmp1("userid") === df_tmp2("userid2"))
     df_join.show
      
 /**
-scala>     val df_tmp1 = df_computed_with_duration
-    val df_tmp2 = df_computed_with_duration
-    val df_join = df_tmp1.join(df_tmp2, df_tmp1("userid") === df_tmp2("userid"))
-    df_join.show
-16/08/30 17:31:11 WARN Column: Constructing trivially true equals predicate, 'userid#0 = userid#0'. Perhaps you need to use aliases.
-+------+---------------+-----+-----+--------+------+---------------+-----+-----+--------+
-|userid|userid_line_cnt|maxts|mints|duration|userid|userid_line_cnt|maxts|mints|duration|
-+------+---------------+-----+-----+--------+------+---------------+-----+-----+--------+
-|    q1|              2|    2|    1|       1|    q1|              2|    2|    1|       1|
-|    q2|              3|    2|    1|       1|    q2|              3|    2|    1|       1|
-|    q3|              1|   12|   12|       0|    q3|              1|   12|   12|       0|
-+------+---------------+-----+-----+--------+------+---------------+-----+-----+--------+
-
+scala>     df_join.show
++------+---------------+-----+-----+--------+-------+----------------+------+------+---------+
+|userid|userid_line_cnt|maxts|mints|duration|userid2|userid_line_cnt2|maxts2|mints2|duration2|
++------+---------------+-----+-----+--------+-------+----------------+------+------+---------+
+|    q1|              2|    2|    1|       1|     q1|               2|     2|     1|        1|
+|    q2|              3|    2|    1|       1|     q2|               3|     2|     1|        1|
+|    q3|              1|   12|   12|       0|     q3|               1|    12|    12|        0|
++------+---------------+-----+-----+--------+-------+----------------+------+------+---------+
 
 **/
   
