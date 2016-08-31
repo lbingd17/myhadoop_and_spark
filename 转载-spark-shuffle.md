@@ -1,3 +1,17 @@
+ ／／／／
+  
+ 首先每一个Mapper会根据Reducer的数量创建出相应的bucket，bucket的数量是M×R，其中M是Map的个数，R是Reduce的个数。
+ 
+其次Mapper产生的结果会根据设置的partition算法填充到每个bucket中去。这里的partition算法是可以自定义的，当然默认的算法是根据key哈希到不同的bucket中去。
+
+当Reducer启动时，它会根据自己task的id和所依赖的Mapper的id从远端或是本地的block manager中取得相应的bucket作为Reducer的输入进行处理。
+
+文／JasonDing（简书作者）
+原文链接：http://www.jianshu.com/p/60bab35bc01e
+著作权归作者所有，转载请联系作者获得授权，并标注“简书作者”。
+http://www.jianshu.com/p/60bab35bc01e
+
+／／／／／
  Spark源码系列（六）Shuffle的过程解析
 
 Spark大会上，所有的演讲嘉宾都认为shuffle是最影响性能的地方，但是又无可奈何。之前去百度面试hadoop的时候，也被问到了这个问题，直接回答了不知道。
