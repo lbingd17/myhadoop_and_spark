@@ -19,8 +19,10 @@ Spark应用程序的运行环境是由多个独立的Executor进程构建的临�
 总之,Spark同节点上的任务以多线程的方式运行在一个JVM进程中,可带来以下好处:
 
 1) 任务启动速度快,与之相反的是MapReduce Task进程的慢启动速度,通常需要1s左右;
+
 2) 同节点上所有任务运行在一个进程中,有利于共享内存。这非常适合内存密集型任务,尤其对
 于那些需要加载大量词典的应用程序,可大大节省内存。
+
 3) 同节点上所有任务可运行在一个JVM进程(Executor)中,且Executor所占资源可连续被多批任
 务使用,不会在运行部分任务后释放掉,这避免了每个任务重复申请资源带来的时间开销,对
 于任务数目非常多的应用,可大大降低运行时间。与之对比的是MapReduce中的Task:每个
@@ -37,27 +39,28 @@ Task单独申请资源,用完后⻢上释放,不能被其他任务重用,尽管1
 
 MapReduce多进程模型
 
-每个Task运行在一个独立的JVM进程中;
-可单独为不同类型的Task设置不同的资源量,目前支持内存和CPU两种资源;
+1) 每个Task运行在一个独立的JVM进程中;
 
-每个Task运行完后,将释放所占用的资源,这些资源不能被其他Task复用,即使是同一个作业
+2) 可单独为不同类型的Task设置不同的资源量,目前支持内存和CPU两种资源;
+
+3) 每个Task运行完后,将释放所占用的资源,这些资源不能被其他Task复用,即使是同一个作业
 相同类型的Task。也就是说,每个Task都要经历“申请资源—> 运行Task –> 释放资源”的过
 程。
 
 Spark多线程模型
 
-每个节点上可以运行一个或多个Executor服务;
+1) 每个节点上可以运行一个或多个Executor服务;
 
-每个Executor配有一定数量的slot,表示该Executor中可以同时运行多少个ShuffleMapTask
+2) 每个Executor配有一定数量的slot,表示该Executor中可以同时运行多少个ShuffleMapTask
 或者ResultTask;
 
-每个Executor单独运行在一个JVM进程中,每个Task则是运行在Executor中的一个线程;
+3) 每个Executor单独运行在一个JVM进程中,每个Task则是运行在Executor中的一个线程;
 
-同一个Executor内部的Task可共享内存,比如通过函数SparkContext#broadcast广播的文件
+4) 同一个Executor内部的Task可共享内存,比如通过函数SparkContext#broadcast广播的文件
 或者数据结构只会在每个Executor中加载一次,而不会像MapReduce那样,每个Task加载一
 次;
 
-Executor一旦启动后,将一直运行,且它的资源可以一直被Task复用,直到Spark程序运行完
+5) Executor一旦启动后,将一直运行,且它的资源可以一直被Task复用,直到Spark程序运行完
 成后才释放退出。
 
 总结
