@@ -1,4 +1,4 @@
- ／／／／
+ ／／／／转载
   
  首先每一个Mapper会根据Reducer的数量创建出相应的bucket，bucket的数量是M×R，其中M是Map的个数，R是Reduce的个数。
  
