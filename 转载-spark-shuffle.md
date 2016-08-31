@@ -331,4 +331,4 @@ SparkEnv.get.shuffleFetcher.fetch[P](shuffledId, split.index, context, ser)
 Referemce:
 岑玉海 http://www.cnblogs.com/cenyuhai/p/3826227.html
 
-转载请注明出处，谢谢！
+ 
